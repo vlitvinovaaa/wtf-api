@@ -1,21 +1,44 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import { Observable } from 'rxjs';
 import {environment} from '../../environments/environment';
-import {Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ApiService {
+export class OpenAIService {
   private apiKey = environment.apiKey;
+  private chatGPTUrl = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+  private dallEUrl = 'https://api.openai.com/v1/images/generations';
 
   constructor(private http: HttpClient) { }
 
-  getChatResponse(prompt: string): Observable<any> {
-    return this.http.post('https://api.openai.com/v1/engine/...', { prompt });
-  }
+  public getResult(prompt: string, useChatGPT: boolean): Observable<any> {
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    let body: any;
+    let url: string;
 
-  generateImage(description: string): Observable<any> {
-    return this.http.post('https://api.openai.com/v1/images/...', { description });
+    if (useChatGPT) {
+      url = this.chatGPTUrl;
+      headers.set('Authorization', `${this.apiKey}`);
+      body = {
+        prompt,
+        max_tokens: 50,
+        n: 1,
+        stop: '\n'
+      };
+    } else {
+      url = this.dallEUrl;
+      headers.set('Authorization', `${this.apiKey}`);
+      body = {
+        model: 'image-alpha-001',
+        prompt,
+        num_images: 1,
+        size: '512x512',
+        response_format: 'url'
+      };
+    }
+
+    return this.http.post<any>(url, body, { headers });
   }
 }
