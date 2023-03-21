@@ -6,39 +6,35 @@ import {environment} from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class OpenAIService {
-  private apiKey = environment.apiKey;
-  private chatGPTUrl = 'https://api.openai.com/v1/engines/davinci-codex/completions';
+export class ApiService {
+  public apiKey = environment.apiKey;
+  private chatGPTUrl = 'https://api.openai.com/v1/completions';
   private dallEUrl = 'https://api.openai.com/v1/images/generations';
 
   constructor(private http: HttpClient) { }
 
-  public getResult(prompt: string, useChatGPT: boolean): Observable<any> {
-    const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    let body: any;
-    let url: string;
+  public getCompletion(prompt: string): Observable<any> {
+    const headers = new HttpHeaders().set('Content-Type', 'application/json').set('Authorization', this.apiKey);
+    const body = {
+      model: 'text-davinci-003',
+      prompt,
+      max_tokens: 50,
+      n: 1,
+      stop: '\n'
+    };
+    console.log(this.apiKey);
+    return this.http.post<any>(this.chatGPTUrl, body, { headers });
+  }
 
-    if (useChatGPT) {
-      url = this.chatGPTUrl;
-      headers.set('Authorization', `${this.apiKey}`);
-      body = {
-        prompt,
-        max_tokens: 50,
-        n: 1,
-        stop: '\n'
-      };
-    } else {
-      url = this.dallEUrl;
-      headers.set('Authorization', `${this.apiKey}`);
-      body = {
-        model: 'image-alpha-001',
-        prompt,
-        num_images: 1,
-        size: '512x512',
-        response_format: 'url'
-      };
-    }
-
-    return this.http.post<any>(url, body, { headers });
+  public generateImage(prompt: string): Observable<any> {
+    const headers = new HttpHeaders().set('Content-Type', 'application/json').set('Authorization', this.apiKey);
+    const body = {
+      model: 'image-alpha-001',
+      prompt,
+      num_images: 1,
+      size: '512x512',
+      response_format: 'url'
+    };
+    return this.http.post<any>(this.dallEUrl, body, { headers });
   }
 }

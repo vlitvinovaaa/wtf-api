@@ -1,1 +1,3 @@
-<p>chat works!</p>
+<input [formControl]="promptControl">
+<button (click)="getResult()">Submit</button>
+<p>{{result | json}}</p>
